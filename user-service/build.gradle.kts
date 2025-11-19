@@ -1,7 +1,9 @@
+val lombokVersion: String by project
+
 plugins {
 	java
 	id("org.springframework.boot") version "3.5.7"
-	id("io.spring.dependency-management") version "1.1.7"
+	id("io.spring.dependency-management") version "1.1.6"
 }
 
 group = "com.library"
@@ -9,8 +11,9 @@ version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
 
 java {
+	sourceCompatibility = JavaVersion.VERSION_23
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(23))
 	}
 }
 
@@ -28,10 +31,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.mysql:mysql-connector-j")
-	annotationProcessor("org.projectlombok:lombok")
+	compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
