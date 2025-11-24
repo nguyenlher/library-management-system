@@ -1,7 +1,7 @@
 val lombokVersion: String by project
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.6"
     java
 }

@@ -8,17 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.library.payment_service.entity.Payment;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
-
+public interface PaymentRepository extends JpaRepository<Payment, String> {
     List<Payment> findByUserId(Long userId);
-
-    List<Payment> findByUserIdAndStatus(Long userId, Payment.PaymentStatus status);
-
     List<Payment> findByReferenceId(Long referenceId);
-
-    List<Payment> findByType(Payment.PaymentType type);
-
-    List<Payment> findByMethod(Payment.PaymentMethod method);
-
-    List<Payment> findByStatus(Payment.PaymentStatus status);
 }

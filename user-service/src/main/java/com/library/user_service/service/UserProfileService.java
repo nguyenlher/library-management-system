@@ -81,11 +81,10 @@ public class UserProfileService {
         return mapToResponseDto(updated);
     }
 
-    public void deleteUserProfile(Long id) {
-        if (!userProfileRepository.existsById(id)) {
-            throw new RuntimeException("User profile not found with ID: " + id);
-        }
-        userProfileRepository.deleteById(id);
+    public void deleteUserProfileByUserId(Long userId) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found for user ID: " + userId));
+        userProfileRepository.delete(userProfile);
     }
 
     public void lockUserBorrowing(Long userId) {

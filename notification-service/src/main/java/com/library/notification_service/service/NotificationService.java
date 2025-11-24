@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.library.notification_service.dto.NotificationDTO;
 import com.library.notification_service.entity.Notification;
@@ -16,9 +19,13 @@ import com.library.notification_service.repository.NotificationRepository;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository, JavaMailSender mailSender, RestTemplate restTemplate) {
         this.notificationRepository = notificationRepository;
+        this.mailSender = mailSender;
+        this.restTemplate = restTemplate;
     }
 
     // Notification operations
@@ -161,11 +168,99 @@ public class NotificationService {
         return createNotification(userId, Notification.NotificationType.EMAIL, template, payload);
     }
 
+    public NotificationDTO createBorrowPaymentSuccessNotification(Long userId, String amount, String paymentMethod, String transactionId) {
+        String template = "BORROW_PAYMENT_SUCCESS";
+        String payload = String.format("{\"amount\":\"%s\",\"paymentMethod\":\"%s\",\"transactionId\":\"%s\"}", amount, paymentMethod, transactionId);
+        return createNotification(userId, Notification.NotificationType.EMAIL, template, payload);
+    }
+
+    public NotificationDTO createFinePaymentSuccessNotification(Long userId, String amount, String paymentMethod, String transactionId) {
+        String template = "FINE_PAYMENT_SUCCESS";
+        String payload = String.format("{\"amount\":\"%s\",\"paymentMethod\":\"%s\",\"transactionId\":\"%s\"}", amount, paymentMethod, transactionId);
+        return createNotification(userId, Notification.NotificationType.EMAIL, template, payload);
+    }
+
     // Helper methods
     private boolean simulateSendNotification(Notification notification) {
-        // Simulate 90% success rate for demo purposes
-        // In real implementation, integrate with actual email/SMS services
-        return Math.random() > 0.1;
+        // Send actual email based on notification type and template
+        if (notification.getType() == Notification.NotificationType.EMAIL) {
+            return sendEmailNotification(notification);
+        }
+        // For SMS or other types, could integrate with SMS service
+        return true; // Assume success for non-email types
+    }
+
+    private boolean sendEmailNotification(Notification notification) {
+        try {
+            String userEmail = getUserEmail(notification.getUserId());
+            if (userEmail == null || userEmail.isEmpty()) {
+                System.err.println("No email found for user " + notification.getUserId());
+                return false;
+            }
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("nguyenlh2004@gmail.com");
+            message.setTo(userEmail);
+            message.setSubject(getEmailSubject(notification.getTemplate()));
+            message.setText(getEmailContent(notification));
+
+            mailSender.send(message);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to send email: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private String getUserEmail(Long userId) {
+        try {
+            String url = "http://localhost:8083/users/" + userId + "/email";
+            return restTemplate.getForObject(url, String.class);
+        } catch (Exception e) {
+            System.err.println("Failed to get email for user " + userId + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String getEmailSubject(String template) {
+        switch (template) {
+            case "BOOK_BORROWED":
+                return "Book Borrowed Successfully";
+            case "BOOK_OVERDUE":
+                return "Book Overdue Notice";
+            case "FINE_PAYMENT":
+                return "Fine Payment Confirmation";
+            case "BOOK_RETURNED":
+                return "Book Returned Successfully";
+            case "BORROW_PAYMENT_SUCCESS":
+                return "Borrow Payment Successful";
+            case "FINE_PAYMENT_SUCCESS":
+                return "Fine Payment Successful";
+            default:
+                return "Library Notification";
+        }
+    }
+
+    private String getEmailContent(Notification notification) {
+        String template = notification.getTemplate();
+        String payload = notification.getPayload();
+
+        switch (template) {
+            case "BORROW_PAYMENT_SUCCESS":
+                return "Dear User,\n\nYour borrow payment has been processed successfully.\n\nDetails: " + payload + "\n\nThank you for using our library system.";
+            case "FINE_PAYMENT_SUCCESS":
+                return "Dear User,\n\nYour fine payment has been processed successfully.\n\nDetails: " + payload + "\n\nYour account has been unlocked. Thank you for using our library system.";
+            case "BOOK_BORROWED":
+                return "Dear User,\n\nYou have successfully borrowed a book.\n\nDetails: " + payload + "\n\nPlease return by the due date.";
+            case "BOOK_OVERDUE":
+                return "Dear User,\n\nYour borrowed book is overdue.\n\nDetails: " + payload + "\n\nPlease return the book as soon as possible.";
+            case "FINE_PAYMENT":
+                return "Dear User,\n\nA fine payment has been recorded.\n\nDetails: " + payload;
+            case "BOOK_RETURNED":
+                return "Dear User,\n\nYou have successfully returned a book.\n\nDetails: " + payload;
+            default:
+                return "Library notification: " + payload;
+        }
     }
 
     private NotificationDTO convertToDTO(Notification notification) {

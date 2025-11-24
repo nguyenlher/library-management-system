@@ -2,6 +2,7 @@ package com.library.book_service.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public class BookDTO {
@@ -22,6 +23,7 @@ public class BookDTO {
     private LocalDateTime updatedAt;
     private Set<AuthorDTO> authors;
     private Set<CategoryDTO> categories;
+    private List<Long> authorIds;
 
     // Constructors
     public BookDTO() {}
@@ -153,5 +155,13 @@ public class BookDTO {
 
     public void setCategories(Set<CategoryDTO> categories) {
         this.categories = categories;
+    }
+
+    public List<Long> getAuthorIds() {
+        return authorIds;
+    }
+
+    public void setAuthorIds(List<Long> authorIds) {
+        this.authorIds = authorIds;
     }
 }

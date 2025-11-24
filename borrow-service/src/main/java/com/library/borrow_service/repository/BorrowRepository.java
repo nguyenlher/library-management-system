@@ -19,6 +19,8 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     List<Borrow> findByStatus(Borrow.BorrowStatus status);
 
+    List<Borrow> findByUserIdAndBookIdAndStatus(Long userId, Long bookId, Borrow.BorrowStatus status);
+
     @Query("SELECT b FROM Borrow b WHERE b.dueDate < :currentDate AND b.status = :status")
     List<Borrow> findOverdueBorrows(@Param("currentDate") LocalDateTime currentDate,
                                    @Param("status") Borrow.BorrowStatus status);
@@ -30,4 +32,6 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
     @Query("SELECT COUNT(b) FROM Borrow b WHERE b.userId = :userId AND b.status = :status")
     Long countActiveBorrowsByUser(@Param("userId") Long userId,
                                  @Param("status") Borrow.BorrowStatus status);
+
+    Long countByBookId(Long bookId);
 }

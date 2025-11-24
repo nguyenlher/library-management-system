@@ -1,23 +1,31 @@
 package com.library.book_service.service;
 
-import com.library.book_service.dto.BookDTO;
-import com.library.book_service.entity.Book;
-import com.library.book_service.repository.BookRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.library.book_service.dto.AuthorDTO;
+import com.library.book_service.dto.BookDTO;
+import com.library.book_service.dto.CategoryDTO;
+import com.library.book_service.entity.Author;
+import com.library.book_service.entity.Book;
+import com.library.book_service.repository.AuthorRepository;
+import com.library.book_service.repository.BookRepository;
 
 @Service
 @Transactional
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository) {
         this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository;
     }
 
     public List<BookDTO> getAllBooks() {
@@ -67,7 +75,56 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
-    public BookDTO saveBook(Book book) {
+    public Optional<BookDTO> updateBook(Long id, BookDTO bookDTO) {
+        return bookRepository.findById(id)
+                .map(existingBook -> {
+                    existingBook.setTitle(bookDTO.getTitle());
+                    existingBook.setIsbn(bookDTO.getIsbn());
+                    existingBook.setSummary(bookDTO.getSummary());
+                    existingBook.setPublisherId(bookDTO.getPublisherId());
+                    existingBook.setPublishYear(bookDTO.getPublishYear());
+                    existingBook.setEdition(bookDTO.getEdition());
+                    existingBook.setCoverImageUrl(bookDTO.getCoverImageUrl());
+                    existingBook.setBorrowFee(bookDTO.getBorrowFee());
+                    existingBook.setTotalCopies(bookDTO.getTotalCopies());
+                    existingBook.setAvailableCopies(bookDTO.getAvailableCopies());
+                    
+                    // Update authors
+                    if (bookDTO.getAuthorIds() != null) {
+                        Set<Author> authors = bookDTO.getAuthorIds().stream()
+                                .map(authorId -> authorRepository.findById(authorId).orElse(null))
+                                .filter(author -> author != null)
+                                .collect(Collectors.toSet());
+                        existingBook.setAuthors(authors);
+                    }
+                    
+                    Book updatedBook = bookRepository.save(existingBook);
+                    return convertToDTO(updatedBook);
+                });
+    }
+
+    public BookDTO createBook(BookDTO bookDTO) {
+        Book book = new Book();
+        book.setTitle(bookDTO.getTitle());
+        book.setIsbn(bookDTO.getIsbn());
+        book.setSummary(bookDTO.getSummary());
+        book.setPublisherId(bookDTO.getPublisherId());
+        book.setPublishYear(bookDTO.getPublishYear());
+        book.setEdition(bookDTO.getEdition());
+        book.setCoverImageUrl(bookDTO.getCoverImageUrl());
+        book.setBorrowFee(bookDTO.getBorrowFee());
+        book.setTotalCopies(bookDTO.getTotalCopies());
+        book.setAvailableCopies(bookDTO.getAvailableCopies());
+        
+        // Set authors
+        if (bookDTO.getAuthorIds() != null) {
+            Set<Author> authors = bookDTO.getAuthorIds().stream()
+                    .map(authorId -> authorRepository.findById(authorId).orElse(null))
+                    .filter(author -> author != null)
+                    .collect(Collectors.toSet());
+            book.setAuthors(authors);
+        }
+        
         Book savedBook = bookRepository.save(book);
         return convertToDTO(savedBook);
     }
@@ -126,13 +183,16 @@ public class BookService {
         // Convert authors and categories if needed
         if (book.getAuthors() != null) {
             dto.setAuthors(book.getAuthors().stream()
-                    .map(author -> new com.library.book_service.dto.AuthorDTO(author.getId(), author.getName()))
+                    .map(author -> new AuthorDTO(author.getId(), author.getName()))
                     .collect(Collectors.toSet()));
         }
         if (book.getCategories() != null) {
             dto.setCategories(book.getCategories().stream()
-                    .map(category -> new com.library.book_service.dto.CategoryDTO(category.getId(), category.getName()))
-                    .collect(Collectors.toSet()));
+                .map(category -> new CategoryDTO(category.getId(), category.getName()))
+                .collect(Collectors.toSet()));
+        }
+        if (book.getPublisher() != null) {
+            dto.setPublisherName(book.getPublisher().getName());
         }
 
         return dto;

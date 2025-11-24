@@ -1,60 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import '../styles/HomePage.css';
-
-// --- Dữ liệu mẫu (Giả lập từ API) ---
-const booksData = [
-  {
-    id: 1,
-    title: "Đắc Nhân Tâm",
-    author: "Dale Carnegie",
-    price: "120.000đ",
-    rating: 4.8,
-    image: "https://placehold.co/300x400/333/white?text=Dac+Nhan+Tam"
-  },
-  {
-    id: 2,
-    title: "Nhà Giả Kim",
-    author: "Paulo Coelho",
-    price: "85.000đ",
-    rating: 4.9,
-    image: "https://placehold.co/300x400/444/white?text=Nha+Gia+Kim"
-  },
-  {
-    id: 3,
-    title: "Tuổi Trẻ Đáng Giá Bao Nhiêu",
-    author: "Rosie Nguyễn",
-    price: "90.000đ",
-    rating: 4.5,
-    image: "https://placehold.co/300x400/555/white?text=Tuoi+Tre"
-  },
-  {
-    id: 4,
-    title: "Tắt Đèn",
-    author: "Ngô Tất Tố",
-    price: "65.000đ",
-    rating: 4.7,
-    image: "https://placehold.co/300x400/666/white?text=Tat+Den"
-  }
-];
-
-// --- Các Component con ---
-
-const Header = () => (
-  <header className="header">
-    <div className="logo">Book<span>Shelf</span>.</div>
-    <ul className="nav-links">
-      <li><a href="/" className="active">Trang chủ</a></li>
-      <li><a href="/">Thể loại</a></li>
-      <li><a href="/">Tác giả</a></li>
-      <li><a href="/">Về chúng tôi</a></li>
-    </ul>
-    <div className="header-icons">
-      <a href="/"><i className="fas fa-search"></i></a>
-      <a href="/"><i className="fas fa-shopping-cart"></i></a>
-      <a href="/" className="btn-login">Đăng nhập</a>
-    </div>
-  </header>
-);
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
+import { Link } from 'react-router-dom';
 
 const Hero = () => (
   <section className="hero">
@@ -73,17 +22,21 @@ const Hero = () => (
   </section>
 );
 
-const BookCard = ({ book }) => (
-  <div className="book-card">
-    <img src={book.image} className="book-img" alt={book.title} />
-    <h3 className="book-title">{book.title}</h3>
-    <p className="book-author">{book.author}</p>
-    <div className="book-footer">
-      <div className="rating"><i className="fas fa-star"></i> {book.rating}</div>
-      <div className="price">{book.price}</div>
-    </div>
-  </div>
-);
+const BookCard = ({ book }) => {
+  const authorLabel = book.authors?.length
+    ? book.authors.map((author) => author.name).join(', ')
+    : book.author || 'Tác giả chưa rõ';
+
+
+  return (
+    <Link to={`/books/${book.id}`} className="book-card">
+      <img src={book.coverImageUrl || book.image} className="book-img" alt={book.title} />
+      <h3 className="book-title">{book.title}</h3>
+      <p className="book-author">{authorLabel}</p>
+      <div className="book-footer" />
+    </Link>
+  );
+};
 
 const Newsletter = () => (
   <section className="newsletter">
@@ -96,15 +49,37 @@ const Newsletter = () => (
   </section>
 );
 
-const Footer = () => (
-  <footer>
-    <p>&copy; 2024 My Book Shelf. Design Concept inspired by Figma Community.</p>
-  </footer>
-);
-
 // --- Component Chính (Main) ---
 
 const HomePage = () => {
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadBooks = async () => {
+      try {
+        const response = await axios.get('http://localhost:8082/books');
+        if (!cancelled) {
+          setBooks(response.data || []);
+          setError(null);
+        }
+      } catch (fetchError) {
+        if (!cancelled) {
+          setError('Không thể tải sách từ book-service. Vui lòng thử lại sau.');
+          setBooks([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadBooks();
+    return () => { cancelled = true; };
+  }, []);
   return (
     <div className="homepage-container">
       <Header />
@@ -112,15 +87,22 @@ const HomePage = () => {
       
       <section className="trending">
         <div className="section-header">
-          <h2>Sách Bán Chạy</h2>
-          <a href="/" className="view-all">Xem tất cả <i className="fas fa-arrow-right"></i></a>
+          <h2>Sách Hot</h2>
+          <Link to="/books" className="view-all">Xem tất cả <i className="fas fa-arrow-right"></i></Link>
         </div>
 
         <div className="book-grid">
-          {booksData.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
+          {loading ? (
+            <p>Đang tải sách...</p>
+          ) : books.length ? (
+            books.slice(0, 5).map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))
+          ) : (
+            <p>Không có sách để hiển thị.</p>
+          )}
         </div>
+        {error && <p className="error-text">{error}</p>}
       </section>
 
       <Newsletter />

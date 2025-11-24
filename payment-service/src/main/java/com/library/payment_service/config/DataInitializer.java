@@ -1,15 +1,16 @@
 package com.library.payment_service.config;
 
-import com.library.payment_service.entity.Payment;
-import com.library.payment_service.entity.PaymentLog;
-import com.library.payment_service.repository.PaymentRepository;
-import com.library.payment_service.repository.PaymentLogRepository;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import com.library.payment_service.entity.Payment;
+import com.library.payment_service.entity.PaymentLog;
+import com.library.payment_service.repository.PaymentLogRepository;
+import com.library.payment_service.repository.PaymentRepository;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -49,7 +50,7 @@ public class DataInitializer implements CommandLineRunner {
         // Log for payment 1
         PaymentLog log1 = new PaymentLog();
         log1.setId(UUID.randomUUID().toString());
-        log1.setPaymentId(payment1.getId().toString());
+            log1.setPaymentId(payment1.getId());
         log1.setGateway(PaymentLog.GatewayType.VNPAY);
         log1.setGatewayTransactionId("VNPAY123456789");
         log1.setPayload("{\"amount\":2.50,\"currency\":\"VND\",\"status\":\"success\"}");
@@ -70,7 +71,7 @@ public class DataInitializer implements CommandLineRunner {
         // Log for payment 2
         PaymentLog log2 = new PaymentLog();
         log2.setId(UUID.randomUUID().toString());
-        log2.setPaymentId(payment2.getId().toString());
+            log2.setPaymentId(payment2.getId());
         log2.setGateway(PaymentLog.GatewayType.CASH);
         log2.setGatewayTransactionId("CASH-" + payment2.getId());
         log2.setPayload("{\"method\":\"cash\",\"amount\":2.00,\"received_by\":\"librarian\"}");
@@ -91,7 +92,7 @@ public class DataInitializer implements CommandLineRunner {
         // Log for payment 3 (failed)
         PaymentLog log3 = new PaymentLog();
         log3.setId(UUID.randomUUID().toString());
-        log3.setPaymentId(payment3.getId().toString());
+            log3.setPaymentId(payment3.getId());
         log3.setGateway(PaymentLog.GatewayType.VNPAY);
         log3.setGatewayTransactionId("VNPAY987654321");
         log3.setPayload("{\"amount\":20.00,\"currency\":\"VND\",\"status\":\"failed\",\"error\":\"insufficient_funds\"}");
@@ -112,7 +113,7 @@ public class DataInitializer implements CommandLineRunner {
         // Log for payment 4 (initiated)
         PaymentLog log4 = new PaymentLog();
         log4.setId(UUID.randomUUID().toString());
-        log4.setPaymentId(payment4.getId().toString());
+            log4.setPaymentId(payment4.getId());
         log4.setGateway(PaymentLog.GatewayType.VNPAY);
         log4.setGatewayTransactionId(null);
         log4.setPayload("{\"amount\":3.25,\"currency\":\"VND\",\"status\":\"pending\"}");
@@ -133,7 +134,7 @@ public class DataInitializer implements CommandLineRunner {
         // Log for payment 5
         PaymentLog log5 = new PaymentLog();
         log5.setId(UUID.randomUUID().toString());
-        log5.setPaymentId(payment5.getId().toString());
+            log5.setPaymentId(payment5.getId());
         log5.setGateway(PaymentLog.GatewayType.VNPAY);
         log5.setGatewayTransactionId("VNPAY555666777");
         log5.setPayload("{\"amount\":1.50,\"currency\":\"VND\",\"status\":\"success\"}");

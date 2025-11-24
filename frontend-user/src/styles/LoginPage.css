@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #F65D4E; /* Màu cam chủ đạo */
+  --primary-hover: #d94c3e;
+  --text-dark: #2B2B2B;
+  --text-grey: #8A8A8A;
+  --bg-input: #F9F9F9;
+  --border-radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+/* --- PHẦN BÊN TRÁI (BANNER) --- */
+.login-banner {
+  flex: 1;
+  position: relative;
+  background-color: #FEF8F7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.banner-content {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 2;
+}
+
+.brand-logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff; /* Chữ trắng nếu nền ảnh tối, hoặc chỉnh thành màu tối nếu nền sáng */
+  line-height: 1.1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.brand-logo span { color: var(--text-dark); background: #fff; padding: 0 5px; border-radius: 4px;} 
+
+.quote {
+  position: absolute;
+  bottom: -80vh; /* Đẩy xuống dưới cùng banner */
+  left: 0;
+  color: #fff;
+  font-size: 18px;
+  font-style: italic;
+  background: rgba(0,0,0,0.4); /* Nền tối mờ để dễ đọc */
+  padding: 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  width: 360px;
+}
+
+/* --- PHẦN BÊN PHẢI (FORM) --- */
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 40px;
+  background: #ffffff;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-header { margin-bottom: 40px; }
+.form-header h2 { font-size: 30px; color: var(--text-dark); margin-bottom: 10px; }
+.form-header p { color: var(--text-grey); font-size: 15px; }
+
+/* INPUT STYLES */
+.input-group { margin-bottom: 15px; text-align: left; }
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field i {
+  position: absolute;
+  left: 15px;
+  color: var(--text-grey);
+  font-size: 14px;
+}
+
+.input-field input {
+  width: 100%;
+  padding: 14px 15px 14px 45px; /* Padding trái lớn để chừa chỗ cho icon */
+  border: 1px solid #eee;
+  background: var(--bg-input);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  transition: 0.3s;
+  outline: none;
+}
+
+.input-field input:focus {
+  border-color: var(--primary-color);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(246, 93, 78, 0.1);
+}
+
+/* ACTIONS (Remember me / Forgot pass) */
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 30px;
+  font-size: 14px;
+  gap: 20px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-grey);
+}
+
+.remember-me input { width: 16px; height: 16px; accent-color: var(--primary-color); }
+
+.forgot-password {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* BUTTONS */
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 20px rgba(246, 93, 78, 0.2);
+}
+
+.btn-submit:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+/* SOCIAL LOGIN */
+.social-login {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.social-login p {
+  color: var(--text-grey);
+  font-size: 14px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.social-login p::before, .social-login p::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: #eee;
+}
+.social-login p::before { left: 0; }
+.social-login p::after { right: 0; }
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-social {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.3s;
+  color: var(--text-dark);
+}
+
+.btn-social:hover { background: #f8f8f8; border-color: #ddd; }
+.btn-social.google i { color: #DB4437; }
+.btn-social.facebook i { color: #4267B2; }
+
+/* FOOTER */
+.form-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.form-footer a {
+  color: var(--primary-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .login-banner { display: none; } /* Ẩn ảnh trên mobile để tập trung vào form */
+  .login-form-wrapper { padding: 20px; }
+}

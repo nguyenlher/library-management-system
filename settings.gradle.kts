@@ -2,7 +2,7 @@ rootProject.name = "demo"
 
 pluginManagement {
 	plugins {
-		id("org.springframework.boot") version "3.5.7"
+		id("org.springframework.boot") version "3.5.8"
 	}
 
 	repositories {

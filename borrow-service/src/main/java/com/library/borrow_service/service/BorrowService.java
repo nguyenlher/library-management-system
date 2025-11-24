@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.library.borrow_service.dto.BorrowDTO;
 import com.library.borrow_service.dto.BorrowFineDTO;
@@ -22,14 +23,16 @@ public class BorrowService {
 
     private final BorrowRepository borrowRepository;
     private final BorrowFineRepository borrowFineRepository;
+    private final RestTemplate restTemplate;
 
     // Fine rates
-    private static final BigDecimal LATE_FINE_RATE = BigDecimal.valueOf(0.50); // $0.50 per day
+    private static final BigDecimal LATE_FINE_RATE = BigDecimal.valueOf(10000); // 10,000 VND per day
     private static final int BORROW_PERIOD_DAYS = 14; // 2 weeks
 
-    public BorrowService(BorrowRepository borrowRepository, BorrowFineRepository borrowFineRepository) {
+    public BorrowService(BorrowRepository borrowRepository, BorrowFineRepository borrowFineRepository, RestTemplate restTemplate) {
         this.borrowRepository = borrowRepository;
         this.borrowFineRepository = borrowFineRepository;
+        this.restTemplate = restTemplate;
     }
 
     // Borrow operations
@@ -142,6 +145,10 @@ public class BorrowService {
         return convertBorrowToDTO(savedBorrow);
     }
 
+    public Long countBorrowsByBook(Long bookId) {
+        return borrowRepository.countByBookId(bookId);
+    }
+
     // Fine operations
     public List<BorrowFineDTO> getAllFines() {
         return borrowFineRepository.findAll().stream()
@@ -174,7 +181,47 @@ public class BorrowService {
 
         fine.setPaid(true);
         BorrowFine savedFine = borrowFineRepository.save(fine);
+
+        // Check if user has no more unpaid fines, then unlock borrowing
+        BigDecimal totalUnpaidFines = getTotalUnpaidFinesByUser(fine.getUserId());
+        if (totalUnpaidFines.compareTo(BigDecimal.ZERO) == 0) {
+            try {
+                // Call user-service to unlock borrowing
+                String url = "http://localhost:8081/users/" + fine.getUserId() + "/unlock";
+                restTemplate.put(url, null);
+            } catch (Exception e) {
+                // Log error but don't fail the process
+                System.err.println("Failed to unlock user " + fine.getUserId() + ": " + e.getMessage());
+            }
+        }
+
         return convertFineToDTO(savedFine);
+    }
+
+    public BorrowFineDTO createFine(Long borrowId, Long userId, BigDecimal amount, BorrowFine.FineReason reason) {
+        BorrowFine fine = new BorrowFine(borrowId, userId, amount, reason);
+        BorrowFine savedFine = borrowFineRepository.save(fine);
+        return convertFineToDTO(savedFine);
+    }
+
+    public BorrowFineDTO updateFine(Long fineId, BigDecimal amount, BorrowFine.FineReason reason) {
+        Optional<BorrowFine> fineOpt = borrowFineRepository.findById(fineId);
+        if (fineOpt.isEmpty()) {
+            throw new IllegalArgumentException("Fine record not found");
+        }
+
+        BorrowFine fine = fineOpt.get();
+        fine.setAmount(amount);
+        fine.setReason(reason);
+        BorrowFine savedFine = borrowFineRepository.save(fine);
+        return convertFineToDTO(savedFine);
+    }
+
+    public void deleteFine(Long fineId) {
+        if (!borrowFineRepository.existsById(fineId)) {
+            throw new IllegalArgumentException("Fine record not found");
+        }
+        borrowFineRepository.deleteById(fineId);
     }
 
     public BigDecimal getTotalUnpaidFinesByUser(Long userId) {
@@ -194,6 +241,26 @@ public class BorrowService {
         }
     }
 
+    private BigDecimal calculateFineAmount(Borrow borrow) {
+        // For late returned books, calculate fine based on days late
+        if (borrow.getStatus() == Borrow.BorrowStatus.LATE_RETURNED && borrow.getReturnDate() != null) {
+            long daysLate = java.time.Duration.between(borrow.getDueDate(), borrow.getReturnDate()).toDays();
+            if (daysLate > 0) {
+                return LATE_FINE_RATE.multiply(BigDecimal.valueOf(daysLate));
+            }
+        }
+        
+        // For lost books, get fine from borrow_fines table
+        if (borrow.getStatus() == Borrow.BorrowStatus.LOST) {
+            List<BorrowFine> fines = borrowFineRepository.findByBorrowId(borrow.getId());
+            return fines.stream()
+                    .map(BorrowFine::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+        
+        return BigDecimal.ZERO;
+    }
+
     private BorrowDTO convertBorrowToDTO(Borrow borrow) {
         BorrowDTO dto = new BorrowDTO();
         dto.setId(borrow.getId());
@@ -205,6 +272,10 @@ public class BorrowService {
         dto.setStatus(borrow.getStatus());
         dto.setCreatedAt(borrow.getCreatedAt());
         dto.setUpdatedAt(borrow.getUpdatedAt());
+        
+        // Calculate fine amount
+        dto.setFineAmount(calculateFineAmount(borrow));
+        
         return dto;
     }
 
@@ -213,10 +284,44 @@ public class BorrowService {
         dto.setId(fine.getId());
         dto.setBorrowId(fine.getBorrowId());
         dto.setUserId(fine.getUserId());
+        // Get bookId from borrow
+        Optional<Borrow> borrowOpt = borrowRepository.findById(fine.getBorrowId());
+        if (borrowOpt.isPresent()) {
+            dto.setBookId(borrowOpt.get().getBookId());
+        }
         dto.setAmount(fine.getAmount());
         dto.setReason(fine.getReason());
         dto.setPaid(fine.getPaid());
+        dto.setStatus(fine.getPaid() ? "PAID" : "UNPAID");
         dto.setCreatedAt(fine.getCreatedAt());
         return dto;
+    }
+
+    // Scheduled task to check and lock users with overdue borrows
+    public void checkAndLockOverdueUsers() {
+        LocalDateTime currentDate = LocalDateTime.now();
+
+        // Find borrows that are overdue
+        List<Borrow> overdueBorrows = borrowRepository.findOverdueBorrows(currentDate, Borrow.BorrowStatus.BORROWED);
+
+        // Group by userId to avoid multiple calls for same user
+        overdueBorrows.stream()
+                .collect(Collectors.groupingBy(Borrow::getUserId))
+                .forEach((userId, borrows) -> {
+                    // Check if any borrow is overdue
+                    boolean hasOverdue = borrows.stream()
+                            .anyMatch(borrow -> borrow.getDueDate().isBefore(currentDate));
+
+                    if (hasOverdue) {
+                        try {
+                            // Call user-service to lock borrowing
+                            String url = "http://localhost:8081/users/" + userId + "/lock";
+                            restTemplate.put(url, null);
+                        } catch (Exception e) {
+                            // Log error but don't fail the process
+                            System.err.println("Failed to lock user " + userId + ": " + e.getMessage());
+                        }
+                    }
+                });
     }
 }

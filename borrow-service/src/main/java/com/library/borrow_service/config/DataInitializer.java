@@ -1,25 +1,20 @@
 package com.library.borrow_service.config;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.library.borrow_service.entity.Borrow;
-import com.library.borrow_service.entity.BorrowFine;
-import com.library.borrow_service.repository.BorrowFineRepository;
 import com.library.borrow_service.repository.BorrowRepository;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
 
     private final BorrowRepository borrowRepository;
-    private final BorrowFineRepository borrowFineRepository;
 
-    public DataInitializer(BorrowRepository borrowRepository, BorrowFineRepository borrowFineRepository) {
+    public DataInitializer(BorrowRepository borrowRepository) {
         this.borrowRepository = borrowRepository;
-        this.borrowFineRepository = borrowFineRepository;
     }
 
     @Override
@@ -56,18 +51,18 @@ public class DataInitializer implements CommandLineRunner {
         borrow3.setUserId(3L);
         borrow3.setBookId(3L);
         borrow3.setBorrowDate(now.minusDays(25));
-        borrow3.setDueDate(now.minusDays(11));
-        borrow3.setReturnDate(now.minusDays(8));
-        borrow3.setStatus(Borrow.BorrowStatus.LATE_RETURNED);
+        borrow3.setDueDate(now.minusDays(11)); // Due date was 11 days ago
+        borrow3.setReturnDate(now.minusDays(8)); // Returned 8 days ago (3 days late)
+        borrow3.setStatus(Borrow.BorrowStatus.RETURNED);
         borrowRepository.save(borrow3);
 
         Borrow borrow4 = new Borrow();
         borrow4.setUserId(4L);
-        borrow4.setBookId(4L);
+        borrow4.setBookId(4L);  
         borrow4.setBorrowDate(now.minusDays(15));
-        borrow4.setDueDate(now.minusDays(1));
-        borrow4.setReturnDate(now.minusDays(1));
-        borrow4.setStatus(Borrow.BorrowStatus.LOST);
+        borrow4.setDueDate(now.minusDays(1)); // Due date was yesterday
+        borrow4.setReturnDate(now.minusDays(1)); // Returned yesterday (on time)
+        borrow4.setStatus(Borrow.BorrowStatus.RETURNED);
         borrowRepository.save(borrow4);
 
 
@@ -79,28 +74,7 @@ public class DataInitializer implements CommandLineRunner {
         borrow5.setStatus(Borrow.BorrowStatus.BORROWED);
         borrowRepository.save(borrow5);
 
-        BorrowFine lateFine = new BorrowFine();
-        lateFine.setBorrowId(borrow3.getId());
-        lateFine.setUserId(3L);
-        lateFine.setAmount(BigDecimal.valueOf(2.00));
-        lateFine.setReason(BorrowFine.FineReason.LATE);
-        lateFine.setPaid(false);
-        borrowFineRepository.save(lateFine);
-
-        BorrowFine lostFine = new BorrowFine();
-        lostFine.setBorrowId(borrow4.getId());
-        lostFine.setUserId(4L);
-        lostFine.setAmount(BigDecimal.valueOf(20.00));
-        lostFine.setReason(BorrowFine.FineReason.LOST);
-        lostFine.setPaid(false);
-        borrowFineRepository.save(lostFine);
-
-        BorrowFine paidFine = new BorrowFine();
-        paidFine.setBorrowId(borrow2.getId());
-        paidFine.setUserId(4L);
-        paidFine.setAmount(BigDecimal.valueOf(1.50));
-        paidFine.setReason(BorrowFine.FineReason.DAMAGE);
-        paidFine.setPaid(true);
-        borrowFineRepository.save(paidFine);
+        // Note: Fines are now calculated automatically based on return date vs due date
+        // Additional fines (lost, damage) can be added manually if needed
     }
 }

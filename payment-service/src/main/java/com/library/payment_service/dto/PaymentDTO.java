@@ -7,7 +7,7 @@ import com.library.payment_service.entity.Payment;
 
 public class PaymentDTO {
 
-    private Long id;
+    private String id;
     private Long userId;
     private BigDecimal amount;
     private Payment.PaymentType type;
@@ -20,11 +20,11 @@ public class PaymentDTO {
     public PaymentDTO() {}
 
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -5,6 +5,8 @@ public class TokenResponseDto {
     private String accessToken;
     private String refreshToken;
     private String tokenType = "Bearer";
+    private Long userId;
+    private String email;
 
     // Constructors
     public TokenResponseDto() {}
@@ -12,6 +14,13 @@ public class TokenResponseDto {
     public TokenResponseDto(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+    }
+
+    public TokenResponseDto(String accessToken, String refreshToken, Long userId, String email) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.userId = userId;
+        this.email = email;
     }
 
     // Getters and Setters
@@ -37,5 +46,21 @@ public class TokenResponseDto {
 
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

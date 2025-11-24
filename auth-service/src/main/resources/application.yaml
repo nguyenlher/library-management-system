@@ -13,3 +13,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  secret: mySecretKey1234567890123456789012345678901234567890
+  access:
+    expiration: 900000  # 15 minutes
+  refresh:
+    expiration: 604800000  # 7 days

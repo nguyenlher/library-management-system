@@ -10,9 +10,11 @@ public class BorrowFineDTO {
     private Long id;
     private Long borrowId;
     private Long userId;
+    private Long bookId;
     private BigDecimal amount;
     private BorrowFine.FineReason reason;
     private Boolean paid;
+    private String status;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -43,6 +45,14 @@ public class BorrowFineDTO {
         this.userId = userId;
     }
 
+    public Long getBookId() {
+        return bookId;
+    }
+
+    public void setBookId(Long bookId) {
+        this.bookId = bookId;
+    }
+
     public BigDecimal getAmount() {
         return amount;
     }
@@ -65,6 +75,14 @@ public class BorrowFineDTO {
 
     public void setPaid(Boolean paid) {
         this.paid = paid;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

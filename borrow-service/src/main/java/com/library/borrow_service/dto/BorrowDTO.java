@@ -1,5 +1,6 @@
 package com.library.borrow_service.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.library.borrow_service.entity.Borrow;
@@ -13,6 +14,7 @@ public class BorrowDTO {
     private LocalDateTime dueDate;
     private LocalDateTime returnDate;
     private Borrow.BorrowStatus status;
+    private BigDecimal fineAmount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -90,5 +92,13 @@ public class BorrowDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public BigDecimal getFineAmount() {
+        return fineAmount;
+    }
+
+    public void setFineAmount(BigDecimal fineAmount) {
+        this.fineAmount = fineAmount;
     }
 }

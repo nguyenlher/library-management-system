@@ -18,8 +18,9 @@ import jakarta.persistence.Table;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
+    private String id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -42,6 +43,9 @@ public class Payment {
     @Column(name = "reference_id")
     private Long referenceId;
 
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -57,11 +61,11 @@ public class Payment {
     }
 
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -111,6 +115,14 @@ public class Payment {
 
     public void setReferenceId(Long referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
     public LocalDateTime getCreatedAt() {

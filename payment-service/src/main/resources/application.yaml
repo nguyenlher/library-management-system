@@ -11,3 +11,14 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+vnpay:
+  tmn-code: OAZCZS0F
+  hash-secret: D0DTJ6R932I9FJPC6G9J3M0DSLIM6AEM
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8084/payments/vnpay/return
+  ipn-url: http://localhost:8084/payments/vnpay/ipn
+  currency: VND
+  version: 2.1.0
+  command: pay
+  order-type: other

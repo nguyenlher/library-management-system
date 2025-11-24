@@ -1,7 +1,7 @@
 val lombokVersion: String by project
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+	id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.6"
     java
 }
@@ -25,6 +25,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.mysql:mysql-connector-j")
     compileOnly("org.projectlombok:lombok")
