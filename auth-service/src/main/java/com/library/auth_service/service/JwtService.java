@@ -1,5 +1,6 @@
 package com.library.auth_service.service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,10 @@ public class JwtService {
 
     public String generateRefreshToken(User user) {
         return createToken(new HashMap<>(), user.getEmail(), refreshExpiration);
+    }
+
+    public LocalDateTime getRefreshTokenExpirationTime() {
+        return LocalDateTime.now().plusSeconds(refreshExpiration / 1000);
     }
 
     private String createToken(Map<String, Object> claims, String subject, long expiration) {

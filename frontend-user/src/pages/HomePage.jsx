@@ -3,24 +3,47 @@ import axios from 'axios';
 import '../styles/HomePage.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-const Hero = () => (
-  <section className="hero">
-    <div className="hero-content">
-      <h1>Tìm kiếm cuốn sách<br />yêu thích tiếp theo của bạn</h1>
-      <p>Khám phá kho tàng tri thức với hơn 10,000 đầu sách. Từ văn học kinh điển đến sách kỹ năng hiện đại.</p>
-      
-      <div className="search-box">
-        <input type="text" placeholder="Nhập tên sách, tác giả..." />
-        <button>Tìm kiếm</button>
+const Hero = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/books?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  return (
+    <section className="hero">
+      <div className="hero-content">
+        <h1>Tìm kiếm cuốn sách<br />yêu thích của bạn</h1>
+        <p>Khám phá kho tàng tri thức với hơn 1,000 đầu sách. Từ văn học cổ điển đến sách kỹ năng hiện đại.</p>
+
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Nhập tên sách, tác giả..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <button onClick={handleSearch}>Tìm kiếm</button>
+        </div>
       </div>
-    </div>
-    <div className="hero-image">
-      <img src="https://placehold.co/600x400/F65D4E/white?text=Hero+Book+Image" alt="Book Cover" />
-    </div>
-  </section>
-);
+      <div className="hero-image">
+        <img src="https://res.cloudinary.com/dehn8lwxv/image/upload/v1763997722/banner/360_F_639256589_pZWLO9DPNolpUjiUArAZhyst8P5BSrxj_vfzjfv.jpg" alt="Book Cover" />
+      </div>
+    </section>
+  );
+};
 
 const BookCard = ({ book }) => {
   const authorLabel = book.authors?.length
@@ -41,11 +64,7 @@ const BookCard = ({ book }) => {
 const Newsletter = () => (
   <section className="newsletter">
     <h2>Đăng ký nhận tin</h2>
-    <p>Nhận thông báo về sách mới và ưu đãi đặc biệt hàng tuần.</p>
-    <div className="input-group">
-      <input type="email" placeholder="Địa chỉ email của bạn" />
-      <button>Đăng ký</button>
-    </div>
+    <p>Nhận thông báo về sách mới và đặc biệt hàng tuần.</p>
   </section>
 );
 

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FaBuilding, FaEdit, FaTrash, FaSearch, FaTimes, FaEye, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { FaBuilding, FaEdit, FaTrash, FaSearch, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 
 const PublisherManagement = () => {
-  const navigate = useNavigate();
   const [publishers, setPublishers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,9 +12,7 @@ const PublisherManagement = () => {
   const [editingPublisher, setEditingPublisher] = useState(null);
   const [justAdded, setJustAdded] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    website: ''
+    name: ''
   });
 
   useEffect(() => {
@@ -37,8 +33,7 @@ const PublisherManagement = () => {
   };
 
   const filteredPublishers = publishers.filter(pub =>
-    pub.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pub.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    pub.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredPublishers.length / itemsPerPage);
@@ -64,22 +59,16 @@ const PublisherManagement = () => {
     }
   }, [publishers, justAdded, itemsPerPage]);
 
-  const handleViewDetails = (publisherId) => {
-    navigate(`/publishers/${publisherId}`);
-  };
-
   const handleAdd = () => {
     setEditingPublisher(null);
-    setFormData({ name: '', address: '', website: '' });
+    setFormData({ name: '' });
     setShowModal(true);
   };
 
   const handleEdit = (pub) => {
     setEditingPublisher(pub);
     setFormData({
-      name: pub.name || '',
-      address: pub.address || '',
-      website: pub.website || ''
+      name: pub.name || ''
     });
     setShowModal(true);
   };
@@ -101,9 +90,7 @@ const PublisherManagement = () => {
     e.preventDefault();
     try {
       const publisherData = {
-        name: formData.name,
-        address: formData.address || null,
-        website: formData.website || null
+        name: formData.name
       };
 
       if (editingPublisher) {
@@ -144,7 +131,7 @@ const PublisherManagement = () => {
             <FaSearch />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên, địa chỉ..."
+              placeholder="Tìm kiếm theo tên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -171,9 +158,6 @@ const PublisherManagement = () => {
                       <td>{pub.name}</td>
                       <td>
                         <div className="action-buttons">
-                          <button className="btn-icon view" title="Xem chi tiết" onClick={() => handleViewDetails(pub.id)}>
-                            <FaEye />
-                          </button>
                           <button className="btn-icon edit" title="Chỉnh sửa" onClick={() => handleEdit(pub)}>
                             <FaEdit />
                           </button>
@@ -237,14 +221,6 @@ const PublisherManagement = () => {
                 <div className="form-group">
                   <label>Tên NXB:</label>
                   <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                </div>
-                <div className="form-group">
-                  <label>Địa chỉ:</label>
-                  <input type="text" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Website:</label>
-                  <input type="text" value={formData.website} onChange={(e) => setFormData({...formData, website: e.target.value})} />
                 </div>
               </div>
               <div className="modal-footer">

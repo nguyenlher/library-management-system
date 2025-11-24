@@ -3,6 +3,9 @@ import { FaBars, FaSearch, FaBell, FaEnvelope } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 
 const TopBar = ({ toggleSidebar }) => {
+  const userName = localStorage.getItem('userName') || 'Admin';
+  const userEmail = localStorage.getItem('currentUserEmail') || '';
+
   return (
     <div className="topbar">
       <div className="topbar-left">
@@ -15,13 +18,10 @@ const TopBar = ({ toggleSidebar }) => {
         </div>
       </div>
       <div className="topbar-right">
-        <div className="icon-btn"><FaBell /><span className="badge">3</span></div>
-        <div className="icon-btn"><FaEnvelope /><span className="badge">5</span></div>
         <div className="user-profile">
-          <div className="avatar-placeholder">AD</div>
           <div className="user-info">
-            <span className="name">Admin User</span>
-            <span className="role">Super Admin</span>
+            <div className="user-name">{userName}</div>
+            <div className="user-email">{userEmail}</div>
           </div>
         </div>
       </div>

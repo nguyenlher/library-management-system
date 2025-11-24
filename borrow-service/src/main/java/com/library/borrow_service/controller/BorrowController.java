@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.library.borrow_service.dto.BorrowWithFineDTO;
 import com.library.borrow_service.entity.Borrow;
@@ -28,10 +29,12 @@ public class BorrowController {
 
     private final BorrowRepository borrowRepository;
     private final BorrowFineRepository borrowFineRepository;
+    private final RestTemplate restTemplate;
 
-    public BorrowController(BorrowRepository borrowRepository, BorrowFineRepository borrowFineRepository) {
+    public BorrowController(BorrowRepository borrowRepository, BorrowFineRepository borrowFineRepository, RestTemplate restTemplate) {
         this.borrowRepository = borrowRepository;
         this.borrowFineRepository = borrowFineRepository;
+        this.restTemplate = restTemplate;
     }
 
     @GetMapping
@@ -47,7 +50,8 @@ public class BorrowController {
         List<BorrowWithFineDTO> borrowWithFineDTOs = borrows.stream()
             .map(borrow -> {
                 BigDecimal calculatedFine = calculateFine(borrow);
-                return new BorrowWithFineDTO(borrow, calculatedFine);
+                String bookTitle = getBookTitle(borrow.getBookId());
+                return new BorrowWithFineDTO(borrow, calculatedFine, bookTitle);
             })
             .collect(Collectors.toList());
 
@@ -72,6 +76,23 @@ public class BorrowController {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    private String getBookTitle(Long bookId) {
+        try {
+            String url = "http://localhost:8082/books/" + bookId;
+            ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                // Assuming the response is a map with "title" key
+                if (response.getBody() instanceof java.util.Map) {
+                    java.util.Map<String, Object> book = (java.util.Map<String, Object>) response.getBody();
+                    return (String) book.get("title");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title for bookId " + bookId + ": " + e.getMessage());
+        }
+        return "N/A";
+    }
+
     @PostMapping
     public ResponseEntity<Borrow> createBorrow(@RequestBody CreateBorrowRequest request) {
         System.out.println("BorrowController: Received create borrow request for userId=" + request.getUserId() + ", bookId=" + request.getBookId());
@@ -93,8 +114,8 @@ public class BorrowController {
         Borrow borrow = new Borrow();
         borrow.setUserId(request.getUserId());
         borrow.setBookId(request.getBookId());
-        borrow.setBorrowDate(request.getBorrowDate() != null ? request.getBorrowDate() : LocalDateTime.now());
-        borrow.setDueDate(request.getDueDate() != null ? request.getDueDate() : LocalDateTime.now().plusDays(14));
+        borrow.setBorrowDate(request.getBorrowDate() != null ? java.time.LocalDate.parse(request.getBorrowDate()).atStartOfDay() : LocalDateTime.now());
+        borrow.setDueDate(request.getDueDate() != null ? java.time.LocalDate.parse(request.getDueDate()).atStartOfDay() : LocalDateTime.now().plusDays(14));
         borrow.setStatus(Borrow.BorrowStatus.BORROWED);
 
         Borrow savedBorrow = borrowRepository.save(borrow);
@@ -114,6 +135,34 @@ public class BorrowController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{borrowId}")
+    public ResponseEntity<Borrow> updateBorrow(@PathVariable Long borrowId, @RequestBody UpdateBorrowRequest request) {
+        return borrowRepository.findById(borrowId)
+            .map(borrow -> {
+                if (request.getUserId() != null) {
+                    borrow.setUserId(request.getUserId());
+                }
+                if (request.getBookId() != null) {
+                    borrow.setBookId(request.getBookId());
+                }
+                if (request.getBorrowDate() != null) {
+                    borrow.setBorrowDate(java.time.LocalDate.parse(request.getBorrowDate()).atStartOfDay());
+                }
+                if (request.getDueDate() != null) {
+                    borrow.setDueDate(java.time.LocalDate.parse(request.getDueDate()).atStartOfDay());
+                }
+                if (request.getStatus() != null) {
+                    borrow.setStatus(Borrow.BorrowStatus.valueOf(request.getStatus()));
+                }
+                if (request.getReturnDate() != null) {
+                    borrow.setReturnDate(java.time.LocalDate.parse(request.getReturnDate()).atStartOfDay());
+                }
+                Borrow updated = borrowRepository.save(borrow);
+                return ResponseEntity.ok(updated);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{borrowId}")
     public ResponseEntity<Void> deleteBorrow(@PathVariable Long borrowId) {
         if (borrowRepository.existsById(borrowId)) {
@@ -126,8 +175,8 @@ public class BorrowController {
     public static class CreateBorrowRequest {
         private Long userId;
         private Long bookId;
-        private LocalDateTime borrowDate;
-        private LocalDateTime dueDate;
+        private String borrowDate;
+        private String dueDate;
 
         public Long getUserId() {
             return userId;
@@ -145,20 +194,77 @@ public class BorrowController {
             this.bookId = bookId;
         }
 
-        public LocalDateTime getBorrowDate() {
+        public String getBorrowDate() {
             return borrowDate;
         }
 
-        public void setBorrowDate(LocalDateTime borrowDate) {
+        public void setBorrowDate(String borrowDate) {
             this.borrowDate = borrowDate;
         }
 
-        public LocalDateTime getDueDate() {
+        public String getDueDate() {
             return dueDate;
         }
 
-        public void setDueDate(LocalDateTime dueDate) {
+        public void setDueDate(String dueDate) {
             this.dueDate = dueDate;
+        }
+    }
+
+    public static class UpdateBorrowRequest {
+        private Long userId;
+        private Long bookId;
+        private String borrowDate;
+        private String dueDate;
+        private String status;
+        private String returnDate;
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public Long getBookId() {
+            return bookId;
+        }
+
+        public void setBookId(Long bookId) {
+            this.bookId = bookId;
+        }
+
+        public String getBorrowDate() {
+            return borrowDate;
+        }
+
+        public void setBorrowDate(String borrowDate) {
+            this.borrowDate = borrowDate;
+        }
+
+        public String getDueDate() {
+            return dueDate;
+        }
+
+        public void setDueDate(String dueDate) {
+            this.dueDate = dueDate;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public String getReturnDate() {
+            return returnDate;
+        }
+
+        public void setReturnDate(String returnDate) {
+            this.returnDate = returnDate;
         }
     }
 }

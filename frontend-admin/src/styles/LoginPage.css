@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #F65D4E; /* Màu cam chủ đạo */
-  --primary-hover: #d94c3e;
+  --primary-color: #2B2B2B; /* Màu đen chủ đạo cho admin */
+  --primary-hover: #1a1a1a;
   --text-dark: #2B2B2B;
   --text-grey: #8A8A8A;
   --bg-input: #F9F9F9;
@@ -28,7 +28,7 @@
 .login-banner {
   flex: 1;
   position: relative;
-  background-color: #FEF8F7;
+  background-color: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@
   text-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.brand-logo span { color: var(--text-dark); background: #fff; padding: 0 5px; border-radius: 4px;} 
+.brand-logo span { color: var(--text-dark); background: #fff; padding: 0 5px; border-radius: 4px;}
 
 .quote {
   position: absolute;
@@ -132,17 +132,16 @@
 .input-field input:focus {
   border-color: var(--primary-color);
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(246, 93, 78, 0.1);
+  box-shadow: 0 0 0 4px rgba(43, 43, 43, 0.1);
 }
 
 /* ACTIONS (Remember me / Forgot pass) */
 .form-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   font-size: 14px;
-  gap: 20px;
 }
 
 .remember-me {
@@ -173,62 +172,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
-  box-shadow: 0 10px 20px rgba(246, 93, 78, 0.2);
+  box-shadow: 0 10px 20px rgba(43, 43, 43, 0.2);
 }
 
 .btn-submit:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
 }
-
-/* SOCIAL LOGIN */
-.social-login {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.social-login p {
-  color: var(--text-grey);
-  font-size: 14px;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.social-login p::before, .social-login p::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 30%;
-  height: 1px;
-  background: #eee;
-}
-.social-login p::before { left: 0; }
-.social-login p::after { right: 0; }
-
-.social-icons {
-  display: flex;
-  gap: 15px;
-}
-
-.btn-social {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #eee;
-  background: #fff;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: 0.3s;
-  color: var(--text-dark);
-}
-
-.btn-social:hover { background: #f8f8f8; border-color: #ddd; }
-.btn-social.google i { color: #DB4437; }
-.btn-social.facebook i { color: #4267B2; }
 
 /* FOOTER */
 .form-footer {

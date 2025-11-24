@@ -263,7 +263,7 @@ const BookManagement = () => {
                   <th>Tiêu đề</th>
                   <th>Tác giả</th>
                   <th>Tổng số bản</th>
-                  <th>Còn lại</th>
+                  <th>Hiện có</th>
                   <th>Thao tác</th>
                 </tr>
               </thead>
@@ -410,7 +410,7 @@ const BookManagement = () => {
                     type="text"
                     value={formData.edition}
                     onChange={(e) => setFormData({...formData, edition: e.target.value})}
-                    placeholder="Ví dụ: Tái bản lần 2"
+                    placeholder="Ví dụ: 2022"
                   />
                 </div>
                 <div className="form-group">
@@ -445,7 +445,7 @@ const BookManagement = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Số bản còn lại:</label>
+                  <label>Số bản hiện có:</label>
                   <input
                     type="number"
                     value={formData.availableCopies}

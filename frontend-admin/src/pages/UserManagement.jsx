@@ -178,6 +178,17 @@ const UserManagement = () => {
     }
   };
 
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'Hoạt động';
+      case 'INACTIVE':
+        return 'Ngưng hoạt động';
+      default:
+        return status || 'Hoạt động';
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -232,7 +243,7 @@ const UserManagement = () => {
                       <td>{user.phoneNumber || 'N/A'}</td>
                       <td>{user.address || 'N/A'}</td>
                       <td>{user.borrowLock ? 'Có' : 'Không'}</td>
-                      <td>{user.status || 'ACTIVE'}</td>
+                      <td>{getStatusDisplay(user.status)}</td>
                       <td>
                         <div className="action-buttons">
                           <button className="btn-icon edit" title="Chỉnh sửa" onClick={() => handleEdit(user)}>
@@ -315,14 +326,15 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>
+                  <div className="checkbox-group">
+                    <label htmlFor="borrowLock">Khóa Mượn:</label>
                     <input
                       type="checkbox"
+                      id="borrowLock"
                       checked={formData.borrowLock}
                       onChange={(e) => setFormData({...formData, borrowLock: e.target.checked})}
                     />
-                    Khóa Mượn
-                  </label>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Trạng thái:</label>
@@ -330,8 +342,8 @@ const UserManagement = () => {
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                   >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
+                    <option value="ACTIVE">Hoạt động</option>
+                    <option value="INACTIVE">Ngưng hoạt động</option>
                   </select>
                 </div>
                 {!editingUser && (

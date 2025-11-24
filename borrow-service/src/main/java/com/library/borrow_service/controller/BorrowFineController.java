@@ -39,6 +39,15 @@ public class BorrowFineController {
         return ResponseEntity.ok(borrowService.getFinesByUser(userId));
     }
 
+    @GetMapping("/{fineId}")
+    public ResponseEntity<BorrowFineDTO> getFine(@PathVariable Long fineId) {
+        BorrowFineDTO fine = borrowService.getFineById(fineId);
+        if (fine != null) {
+            return ResponseEntity.ok(fine);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @PostMapping
     public ResponseEntity<BorrowFineDTO> createFine(@RequestBody CreateFineRequest request) {
         BorrowFineDTO fine = borrowService.createFine(request.getBorrowId(), request.getUserId(), request.getAmount(), request.getReason());

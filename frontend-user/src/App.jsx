@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import './App.css';
 import Home from './pages/HomePage';
 import Login from './pages/LoginPage';
+import Register from './pages/RegisterPage';
 import DetailBook from './pages/DetailBookPage';
 import BookPage from './pages/BookPage';
 import Checkout from './pages/CheckoutPage';
@@ -25,6 +26,8 @@ function App() {
         <Route path="/home" element={<Home />} />
 
         <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
 
         <Route path="/books" element={<BookPage />} />
         <Route path="/books/:id" element={<DetailBook />} />

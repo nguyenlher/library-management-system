@@ -24,7 +24,7 @@ library-management-system/
 
 ```
 Library Management System
-├── Backend Services (Spring Boot 3.5.7 + Java 23)
+├── Backend Services (Spring Boot 3.5.7 + Java 21)
 │   ├── auth-service (Port 8083) - User authentication
 │   ├── user-service (Port 8081) - User profile management
 │   ├── book-service (Port 8082) - Book catalog management
@@ -157,6 +157,17 @@ npm start
 # Clean and rebuild
 ./gradlew clean
 ./gradlew build --refresh-dependencies
+```
+
+### Missing gradle-wrapper.jar
+If you encounter the error "Unable to access jarfile ...gradle-wrapper.jar":
+
+```bash
+# Download the wrapper jar (for Gradle 8.14.3)
+Invoke-WebRequest -Uri "https://github.com/gradle/gradle/blob/v8.14.3/gradle/wrapper/gradle-wrapper.jar?raw=true" -OutFile "gradle\wrapper\gradle-wrapper.jar"
+
+# Then run build
+./gradlew build
 ```
 
 ## Contact

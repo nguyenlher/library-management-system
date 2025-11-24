@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaBook, FaUser, FaMoneyBillWave, FaSearch, FaCheck, FaChevronLeft, FaChevronRight, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaBook, FaUser, FaMoneyBillWave, FaSearch, FaCheck, FaChevronLeft, FaChevronRight, FaPlus, FaEdit, FaTrash, FaEnvelope } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 
 const FineManagement = () => {
@@ -10,11 +10,43 @@ const FineManagement = () => {
   const [itemsPerPage] = useState(8);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingFine, setEditingFine] = useState(null);
-  const [formData, setFormData] = useState({ borrowId: '', userId: '', amount: '', reason: 'LATE' });
+  const [formData, setFormData] = useState({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
+  const [users, setUsers] = useState([]);
+  const [userBorrows, setUserBorrows] = useState([]);
 
   useEffect(() => {
     fetchFines();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchUserBorrows = async (userId) => {
+    if (!userId) {
+      setUserBorrows([]);
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8086/borrows/user/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserBorrows(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user borrows:', error);
+      setUserBorrows([]);
+    }
+  };
 
   const fetchFines = async () => {
     try {
@@ -56,6 +88,19 @@ const FineManagement = () => {
       return paidValue ? `${paidValue.toLocaleString('vi-VN')} ₫` : '0 ₫';
     };
 
+  const formatReason = (reason) => {
+    switch (reason) {
+      case 'LATE':
+        return 'Trễ hạn';
+      case 'LOST':
+        return 'Thất lạc';
+      case 'DAMAGE':
+        return 'Hư hại';
+      default:
+        return reason || 'N/A';
+    }
+  };
+
   const totalPages = Math.ceil(filteredFines.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentFines = filteredFines.slice(startIndex, startIndex + itemsPerPage);
@@ -75,6 +120,29 @@ const FineManagement = () => {
     }
   };
 
+  const handleSendReminder = async (fineId) => {
+    if (!window.confirm('Gửi email nhắc nhở thanh toán đến người dùng?')) return;
+    try {
+      const response = await fetch(`http://localhost:8085/api/notifications/fine-payment-reminder/${fineId}`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (response.ok) {
+        alert('Đã gửi email nhắc nhở thành công!');
+      } else {
+        alert('Có lỗi xảy ra khi gửi email nhắc nhở.');
+      }
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      alert('Có lỗi xảy ra khi gửi email nhắc nhở.');
+    }
+  };
+
+  const handleUserChange = (userId) => {
+    setFormData({ ...formData, userId, borrowId: '' });
+    fetchUserBorrows(userId);
+  };
+
   const handleAddFine = async () => {
     try {
       const response = await fetch('http://localhost:8086/fines', {
@@ -89,7 +157,8 @@ const FineManagement = () => {
       });
       if (response.ok) {
         setShowAddModal(false);
-        setFormData({ borrowId: '', userId: '', amount: '', reason: 'LATE' });
+        setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
+        setUserBorrows([]);
         fetchFines();
       }
     } catch (error) {
@@ -100,11 +169,12 @@ const FineManagement = () => {
   const handleEditFine = (fine) => {
     setEditingFine(fine);
     setFormData({
-      borrowId: fine.borrowId,
-      userId: fine.userId,
-      amount: fine.amount,
-      reason: fine.reason
+      userId: fine.userId?.toString() || '',
+      borrowId: fine.borrowId?.toString() || '',
+      amount: fine.amount?.toString() || '',
+      reason: fine.reason || 'LATE'
     });
+    fetchUserBorrows(fine.userId);
     setShowAddModal(true);
   };
 
@@ -121,7 +191,8 @@ const FineManagement = () => {
       if (response.ok) {
         setShowAddModal(false);
         setEditingFine(null);
-        setFormData({ borrowId: '', userId: '', amount: '', reason: 'LATE' });
+        setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
+        setUserBorrows([]);
         fetchFines();
       }
     } catch (error) {
@@ -151,7 +222,7 @@ const FineManagement = () => {
     <div className="dashboard-content">
       <div className="page-header">
         <h2 className="page-title">Quản lý phí phạt</h2>
-        <button className="btn-primary" onClick={() => { setEditingFine(null); setFormData({ borrowId: '', userId: '', amount: '', reason: 'LATE' }); setShowAddModal(true); }}>
+        <button className="btn-primary" onClick={() => { setEditingFine(null); setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' }); setUserBorrows([]); setShowAddModal(true); }}>
           <FaPlus /> Thêm phạt
         </button>
       </div>
@@ -192,7 +263,7 @@ const FineManagement = () => {
                       <td>{startIndex + index + 1}</td>
                       <td>{fine.userName || 'N/A'}</td>
                       <td>{fine.amount ? `${fine.amount.toLocaleString('vi-VN')} ₫` : 'N/A'}</td>
-                      <td>{fine.reason || 'N/A'}</td>
+                      <td>{formatReason(fine.reason)}</td>
                       <td>{formatPaidAmount(fine)}</td>
                       <td>{formatDate(fine.createdAt)}</td>
                       <td className={`status ${fine.paid ? 'completed' : 'pending'}`}>
@@ -201,9 +272,14 @@ const FineManagement = () => {
                       <td>
                         <div className="action-buttons">
                           {!fine.paid && (
-                            <button className="btn-icon edit" title="Đánh dấu đã thanh toán" onClick={() => handlePayFine(fine.id)}>
-                              <FaCheck />
-                            </button>
+                            <>
+                              <button className="btn-icon reminder" title="Nhắc nhở thanh toán" onClick={() => handleSendReminder(fine.id)}>
+                                <FaEnvelope />
+                              </button>
+                              <button className="btn-icon edit" title="Đánh dấu đã thanh toán" onClick={() => handlePayFine(fine.id)}>
+                                <FaCheck />
+                              </button>
+                            </>
                           )}
                           <button className="btn-icon edit" title="Sửa" onClick={() => handleEditFine(fine)}>
                             <FaEdit />
@@ -255,21 +331,39 @@ const FineManagement = () => {
           <div className="modal">
             <h3>{editingFine ? 'Sửa phí phạt' : 'Thêm phí phạt'}</h3>
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-              {!editingFine && (
-                <>
-                  <div className="form-group">
-                    <label>Borrow ID:</label>
-                    <input type="number" value={formData.borrowId} onChange={(e) => setFormData({ ...formData, borrowId: e.target.value })} required />
-                  </div>
-                  <div className="form-group">
-                    <label>User ID:</label>
-                    <input type="number" value={formData.userId} onChange={(e) => setFormData({ ...formData, userId: e.target.value })} required />
-                  </div>
-                </>
-              )}
               <div className="form-group">
-                <label>Số tiền:</label>
-                <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required />
+                <label>Người phạt:</label>
+                <select 
+                  value={formData.userId} 
+                  onChange={(e) => handleUserChange(e.target.value)}
+                  disabled={editingFine !== null}
+                  required
+                >
+                  <option value="">Chọn người dùng</option>
+                  {users.map(user => (
+                    <option key={user.userId} value={user.userId}>{user.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Mã mượn:</label>
+                <select 
+                  value={formData.borrowId} 
+                  onChange={(e) => setFormData({ ...formData, borrowId: e.target.value })}
+                  disabled={editingFine !== null || !formData.userId}
+                  required
+                >
+                  <option value="">Chọn mã mượn</option>
+                  {userBorrows.map(borrow => {
+                    const borrowDate = new Date(borrow.borrowDate);
+                    const formattedDate = `${borrowDate.getDate()}/${borrowDate.getMonth() + 1}/${borrowDate.getFullYear()}`;
+                    return (
+                      <option key={borrow.id} value={borrow.id}>
+                        {borrow.id} - {borrow.bookTitle || 'N/A'} ({formattedDate})
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
               <div className="form-group">
                 <label>Lý do:</label>
@@ -279,8 +373,12 @@ const FineManagement = () => {
                   <option value="DAMAGE">Hư hỏng</option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>Số tiền:</label>
+                <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required />
+              </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)}>Hủy</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowAddModal(false); setUserBorrows([]); }}>Hủy</button>
                 <button type="submit" className="btn-primary">{editingFine ? 'Cập nhật' : 'Thêm'}</button>
               </div>
             </form>

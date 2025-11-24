@@ -11,9 +11,9 @@ version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_23
+	sourceCompatibility = JavaVersion.VERSION_21
 	toolchain {
-		languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(23))
+		languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(21))
 	}
 }
 

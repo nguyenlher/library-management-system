@@ -9,6 +9,7 @@ public class BorrowWithFineDTO {
     private Long id;
     private Long userId;
     private Long bookId;
+    private String bookTitle;
     private LocalDateTime borrowDate;
     private LocalDateTime dueDate;
     private LocalDateTime returnDate;
@@ -18,10 +19,11 @@ public class BorrowWithFineDTO {
     // Constructors
     public BorrowWithFineDTO() {}
 
-    public BorrowWithFineDTO(Borrow borrow, BigDecimal totalFine) {
+    public BorrowWithFineDTO(Borrow borrow, BigDecimal totalFine, String bookTitle) {
         this.id = borrow.getId();
         this.userId = borrow.getUserId();
         this.bookId = borrow.getBookId();
+        this.bookTitle = bookTitle;
         this.borrowDate = borrow.getBorrowDate();
         this.dueDate = borrow.getDueDate();
         this.returnDate = borrow.getReturnDate();
@@ -52,6 +54,14 @@ public class BorrowWithFineDTO {
 
     public void setBookId(Long bookId) {
         this.bookId = bookId;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 
     public LocalDateTime getBorrowDate() {

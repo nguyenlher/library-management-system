@@ -94,7 +94,6 @@ const Header = () => {
         <li><Link to="/about">Về chúng tôi</Link></li>
       </ul>
       <div className="header-icons">
-        <Link to="/"><i className="fas fa-search"></i></Link>
         {userName ? (
           <div
             className="user-menu"

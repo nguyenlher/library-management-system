@@ -96,15 +96,26 @@ const AuthorManagement = () => {
   };
 
   const handleDelete = async (authorId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa tác giả này?')) {
-      try {
+    try {
+      // Kiểm tra xem tác giả có còn ràng buộc với sách không
+      const booksResponse = await fetch('http://localhost:8082/books');
+      const books = await booksResponse.json();
+      const authorBooks = books.filter(book => book.authorId === authorId);
+
+      if (authorBooks.length > 0) {
+        alert(`Không thể xóa tác giả này vì còn ${authorBooks.length} cuốn sách đang sử dụng. Vui lòng xóa hoặc thay đổi tác giả của các cuốn sách này trước.`);
+        return;
+      }
+
+      if (window.confirm('Bạn có chắc chắn muốn xóa tác giả này?')) {
         await fetch(`http://localhost:8082/authors/${authorId}`, {
           method: 'DELETE',
         });
         fetchAuthors(); // Refresh danh sách
-      } catch (error) {
-        console.error('Error deleting author:', error);
       }
+    } catch (error) {
+      console.error('Error deleting author:', error);
+      alert('Có lỗi xảy ra khi xóa tác giả');
     }
   };
 

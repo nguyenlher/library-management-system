@@ -162,6 +162,11 @@ public class BorrowService {
                 .collect(Collectors.toList());
     }
 
+    public BorrowFineDTO getFineById(Long fineId) {
+        Optional<BorrowFine> fineOpt = borrowFineRepository.findById(fineId);
+        return fineOpt.map(this::convertFineToDTO).orElse(null);
+    }
+
     public List<BorrowFineDTO> getUnpaidFinesByUser(Long userId) {
         return borrowFineRepository.findByUserIdAndPaid(userId, false).stream()
                 .map(this::convertFineToDTO)
@@ -303,6 +308,15 @@ public class BorrowService {
 
         // Find borrows that are overdue
         List<Borrow> overdueBorrows = borrowRepository.findOverdueBorrows(currentDate, Borrow.BorrowStatus.BORROWED);
+
+        // Update status of overdue borrows to LATE_RETURNED
+        for (Borrow borrow : overdueBorrows) {
+            if (borrow.getDueDate().isBefore(currentDate)) {
+                borrow.setStatus(Borrow.BorrowStatus.LATE_RETURNED);
+                borrowRepository.save(borrow);
+                System.out.println("Updated borrow " + borrow.getId() + " status to LATE_RETURNED due to overdue");
+            }
+        }
 
         // Group by userId to avoid multiple calls for same user
         overdueBorrows.stream()

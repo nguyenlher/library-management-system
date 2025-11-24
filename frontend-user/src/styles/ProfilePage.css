@@ -1,0 +1,287 @@
+.profile-container {
+  max-width: 1000px;
+  margin: 80px auto 40px;
+  padding: 20px;
+  min-height: 60vh;
+}
+
+.profile-container h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.profile-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.loading-spinner i {
+  margin-right: 10px;
+  color: #f39c12;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 15px 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 15px 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px;
+}
+
+.profile-card {
+  padding: 0;
+}
+
+.profile-header {
+  background: #F65D4E;
+  padding: 40px 30px;
+  color: white;
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-info h2 {
+  margin: 0 0 5px 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.user-info p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
+.profile-form {
+  padding: 30px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+.form-section h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 15px;
+  color: #999;
+  font-size: 1rem;
+  z-index: 1;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background: white;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-wrapper input[readonly] {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.info-item .label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item .value {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.fine-amount {
+  color: #dc3545 !important;
+  font-weight: 700 !important;
+}
+
+.status-active {
+  color: #28a745 !important;
+}
+
+.status-locked {
+  color: #dc3545 !important;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.save-button {
+  background: #F65D4E;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.save-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.save-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.save-button i {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    margin-top: 60px;
+    padding: 15px;
+  }
+
+  .profile-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+
+  .profile-header {
+    padding: 30px 20px;
+  }
+
+  .avatar-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .user-info h2 {
+    font-size: 1.4rem;
+  }
+
+  .profile-form {
+    padding: 20px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .form-actions {
+    padding-top: 15px;
+  }
+
+  .save-button {
+    padding: 12px 30px;
+    font-size: 0.95rem;
+  }
+}

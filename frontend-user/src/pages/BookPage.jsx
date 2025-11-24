@@ -58,6 +58,8 @@ const BookPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryFromHeader = params.get('category');
+    const searchFromUrl = params.get('search');
+    
     if (categoryFromHeader) {
       const id = Number(categoryFromHeader);
       if (!Number.isNaN(id)) {
@@ -65,6 +67,11 @@ const BookPage = () => {
         return;
       }
     }
+    
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl);
+    }
+    
     setSelectedCategoryIds([]);
   }, [location.search]);
 

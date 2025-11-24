@@ -3,7 +3,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import '../styles/Dashboard.css';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, onLogout }) => {
   const location = useLocation();
   const menuItems = [
     { name: "Tổng quan", path: "/" },
@@ -15,12 +15,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: "Phí phạt", path: "/fines" },
   ];
 
+  const handleLogout = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      if (onLogout) {
+        onLogout();
+      }
+    }
+  };
+
   return (
     <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
       <div className="sidebar-header">
         <div className="logo-area">
-          <div className="logo-box" onClick={toggleSidebar} style={{ cursor: 'pointer' }}>A</div>
-          {isOpen && <span className="logo-text">AdminPanel</span>}
+          <div className="logo-box" onClick={toggleSidebar} style={{ cursor: 'pointer' }}>Q</div>
+          {isOpen && <span className="logo-text">Quản trị viên</span>}
         </div>
         {isOpen && (
           <button className="toggle-btn" onClick={toggleSidebar}>
@@ -42,7 +50,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       <div className="sidebar-footer">
         <div className="menu-item logout">
-          <a href="#">
+          <a onClick={handleLogout} style={{ cursor: 'pointer' }}>
             <span className="text-icon">X</span>
             {isOpen && <span className="label">Đăng xuất</span>}
           </a>

@@ -180,6 +180,12 @@ public class NotificationService {
         return createNotification(userId, Notification.NotificationType.EMAIL, template, payload);
     }
 
+    public NotificationDTO createFinePaymentReminderNotification(Long userId, String amount, String fineReason) {
+        String template = "FINE_PAYMENT_REMINDER";
+        String payload = String.format("{\"amount\":\"%s\",\"fineReason\":\"%s\"}", amount, fineReason);
+        return createNotification(userId, Notification.NotificationType.EMAIL, template, payload);
+    }
+
     // Helper methods
     private boolean simulateSendNotification(Notification notification) {
         // Send actual email based on notification type and template
@@ -236,6 +242,8 @@ public class NotificationService {
                 return "Borrow Payment Successful";
             case "FINE_PAYMENT_SUCCESS":
                 return "Fine Payment Successful";
+            case "FINE_PAYMENT_REMINDER":
+                return "Nhắc nhở thanh toán phí phạt";
             default:
                 return "Library Notification";
         }
@@ -243,23 +251,24 @@ public class NotificationService {
 
     private String getEmailContent(Notification notification) {
         String template = notification.getTemplate();
-        String payload = notification.getPayload();
 
         switch (template) {
             case "BORROW_PAYMENT_SUCCESS":
-                return "Dear User,\n\nYour borrow payment has been processed successfully.\n\nDetails: " + payload + "\n\nThank you for using our library system.";
+                return "Chào bạn,\n\nThanh toán phí mượn sách của bạn đã được xử lý thành công.\n\nCảm ơn bạn đã sử dụng hệ thống thư viện của chúng tôi.";
             case "FINE_PAYMENT_SUCCESS":
-                return "Dear User,\n\nYour fine payment has been processed successfully.\n\nDetails: " + payload + "\n\nYour account has been unlocked. Thank you for using our library system.";
+                return "Chào bạn,\n\nThanh toán phí phạt của bạn đã được xử lý thành công.\n\nTài khoản của bạn đã được mở khóa. Cảm ơn bạn đã sử dụng hệ thống thư viện của chúng tôi.";
+            case "FINE_PAYMENT_REMINDER":
+                return "Chào bạn,\n\nBạn còn có phí phạt chưa thanh toán trong hệ thống thư viện.\n\nVui lòng thanh toán phí phạt để có thể tiếp tục mượn sách. Nếu bạn đã thanh toán, vui lòng bỏ qua email này.\n\nCảm ơn bạn đã sử dụng hệ thống thư viện của chúng tôi.";
             case "BOOK_BORROWED":
-                return "Dear User,\n\nYou have successfully borrowed a book.\n\nDetails: " + payload + "\n\nPlease return by the due date.";
+                return "Chào bạn,\n\nBạn đã mượn sách thành công.\n\nVui lòng trả sách trước ngày hạn.";
             case "BOOK_OVERDUE":
-                return "Dear User,\n\nYour borrowed book is overdue.\n\nDetails: " + payload + "\n\nPlease return the book as soon as possible.";
+                return "Chào bạn,\n\nSách bạn mượn đã quá hạn.\n\nVui lòng trả sách càng sớm càng tốt.";
             case "FINE_PAYMENT":
-                return "Dear User,\n\nA fine payment has been recorded.\n\nDetails: " + payload;
+                return "Chào bạn,\n\nĐã ghi nhận thanh toán phí phạt.";
             case "BOOK_RETURNED":
-                return "Dear User,\n\nYou have successfully returned a book.\n\nDetails: " + payload;
+                return "Chào bạn,\n\nBạn đã trả sách thành công.";
             default:
-                return "Library notification: " + payload;
+                return "Thông báo thư viện: ";
         }
     }
 
