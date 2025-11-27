@@ -11,6 +11,7 @@ import BorrowHistory from './pages/BorrowHistoryPage';
 import FineHistory from './pages/FineHistoryPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
+import ProfilePage from './pages/ProfilePage';
 import PaymentBorrowSuccess from './pages/PaymentBorrowSuccess';
 import PaymentBorrowFailed from './pages/PaymentBorrowFailed';
 import PaymentFineSuccess from './pages/PaymentFineSuccess';
@@ -34,6 +35,7 @@ function App() {
         <Route path="/checkout/:id" element={<Checkout />} />
         <Route path="/borrowed" element={<BorrowHistory />} />
         <Route path="/fines" element={<FineHistory />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
         <Route path="/payment/borrow/success" element={<PaymentBorrowSuccess />} />

@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.library.borrow_service.dto.BorrowDTO;
 import com.library.borrow_service.dto.BorrowFineDTO;
+import com.library.borrow_service.dto.UserProfileLockDto;
 import com.library.borrow_service.entity.Borrow;
 import com.library.borrow_service.entity.BorrowFine;
 import com.library.borrow_service.repository.BorrowFineRepository;
@@ -70,6 +71,18 @@ public class BorrowService {
     }
 
     public BorrowDTO borrowBook(Long userId, Long bookId) {
+        // Check if user is locked from borrowing
+        try {
+            String url = "http://localhost:8081/users/" + userId + "/profile";
+            UserProfileLockDto userProfile = restTemplate.getForObject(url, UserProfileLockDto.class);
+            if (userProfile != null && Boolean.TRUE.equals(userProfile.getBorrowLock())) {
+                throw new IllegalStateException("User is locked from borrowing due to outstanding fines");
+            }
+        } catch (Exception e) {
+            // If we can't check the lock status, allow borrowing but log the error
+            System.err.println("Failed to check borrow lock status for user " + userId + ": " + e.getMessage());
+        }
+
         // Check if user already has this book borrowed
         List<Borrow> activeBorrows = borrowRepository.findActiveBorrowsByUser(userId, Borrow.BorrowStatus.BORROWED);
         boolean alreadyBorrowed = activeBorrows.stream()
@@ -112,8 +125,19 @@ public class BorrowService {
         // Check if late return
         if (returnDate.isAfter(borrow.getDueDate())) {
             borrow.setStatus(Borrow.BorrowStatus.LATE_RETURNED);
-            // Calculate and create late fine
-            createLateFine(borrow, returnDate);
+            // Update or create late fine
+            Optional<BorrowFine> existingLateFine = borrowFineRepository.findByBorrowIdAndReason(borrow.getId(), BorrowFine.FineReason.LATE);
+            if (existingLateFine.isPresent()) {
+                // Update fine amount based on return date
+                BorrowFine fine = existingLateFine.get();
+                long daysLate = java.time.Duration.between(borrow.getDueDate(), returnDate).toDays();
+                BigDecimal fineAmount = LATE_FINE_RATE.multiply(BigDecimal.valueOf(Math.max(daysLate, 0)));
+                fine.setAmount(fineAmount);
+                borrowFineRepository.save(fine);
+            } else {
+                // Create late fine if not exists
+                createLateFine(borrow, returnDate);
+            }
         } else {
             borrow.setStatus(Borrow.BorrowStatus.RETURNED);
         }
@@ -140,6 +164,14 @@ public class BorrowService {
         BorrowFine lostFine = new BorrowFine(borrow.getId(), borrow.getUserId(),
                                            BigDecimal.valueOf(20.00), BorrowFine.FineReason.LOST);
         borrowFineRepository.save(lostFine);
+
+        // Lock user borrowing due to fine
+        try {
+            String url = "http://localhost:8081/users/" + borrow.getUserId() + "/lock";
+            restTemplate.put(url, null);
+        } catch (Exception e) {
+            System.err.println("Failed to lock user " + borrow.getUserId() + " due to lost book fine: " + e.getMessage());
+        }
 
         Borrow savedBorrow = borrowRepository.save(borrow);
         return convertBorrowToDTO(savedBorrow);
@@ -206,6 +238,15 @@ public class BorrowService {
     public BorrowFineDTO createFine(Long borrowId, Long userId, BigDecimal amount, BorrowFine.FineReason reason) {
         BorrowFine fine = new BorrowFine(borrowId, userId, amount, reason);
         BorrowFine savedFine = borrowFineRepository.save(fine);
+
+        // Lock user borrowing due to fine
+        try {
+            String url = "http://localhost:8081/users/" + userId + "/lock";
+            restTemplate.put(url, null);
+        } catch (Exception e) {
+            System.err.println("Failed to lock user " + userId + " due to fine: " + e.getMessage());
+        }
+
         return convertFineToDTO(savedFine);
     }
 
@@ -243,15 +284,32 @@ public class BorrowService {
             BorrowFine lateFine = new BorrowFine(borrow.getId(), borrow.getUserId(),
                                                fineAmount, BorrowFine.FineReason.LATE);
             borrowFineRepository.save(lateFine);
+
+            // Lock user borrowing due to fine
+            try {
+                String url = "http://localhost:8081/users/" + borrow.getUserId() + "/lock";
+                restTemplate.put(url, null);
+            } catch (Exception e) {
+                System.err.println("Failed to lock user " + borrow.getUserId() + " due to late fine: " + e.getMessage());
+            }
         }
     }
 
     private BigDecimal calculateFineAmount(Borrow borrow) {
         // For late returned books, calculate fine based on days late
-        if (borrow.getStatus() == Borrow.BorrowStatus.LATE_RETURNED && borrow.getReturnDate() != null) {
-            long daysLate = java.time.Duration.between(borrow.getDueDate(), borrow.getReturnDate()).toDays();
-            if (daysLate > 0) {
-                return LATE_FINE_RATE.multiply(BigDecimal.valueOf(daysLate));
+        if (borrow.getStatus() == Borrow.BorrowStatus.LATE_RETURNED) {
+            if (borrow.getReturnDate() != null) {
+                // Already returned, calculate based on return date
+                long daysLate = java.time.Duration.between(borrow.getDueDate(), borrow.getReturnDate()).toDays();
+                if (daysLate > 0) {
+                    return LATE_FINE_RATE.multiply(BigDecimal.valueOf(daysLate));
+                }
+            } else {
+                // Still borrowed but overdue, calculate based on current date
+                long daysLate = java.time.Duration.between(borrow.getDueDate(), LocalDateTime.now()).toDays();
+                if (daysLate > 0) {
+                    return LATE_FINE_RATE.multiply(BigDecimal.valueOf(daysLate));
+                }
             }
         }
         
@@ -309,12 +367,32 @@ public class BorrowService {
         // Find borrows that are overdue
         List<Borrow> overdueBorrows = borrowRepository.findOverdueBorrows(currentDate, Borrow.BorrowStatus.BORROWED);
 
-        // Update status of overdue borrows to LATE_RETURNED
+        // Update status of overdue borrows to LATE_RETURNED and create fines
         for (Borrow borrow : overdueBorrows) {
             if (borrow.getDueDate().isBefore(currentDate)) {
                 borrow.setStatus(Borrow.BorrowStatus.LATE_RETURNED);
                 borrowRepository.save(borrow);
                 System.out.println("Updated borrow " + borrow.getId() + " status to LATE_RETURNED due to overdue");
+
+                // Create or update late fine
+                Optional<BorrowFine> lateFineOpt = borrowFineRepository.findByBorrowIdAndReason(borrow.getId(), BorrowFine.FineReason.LATE);
+
+                if (lateFineOpt.isPresent()) {
+                    // Update existing fine
+                    BorrowFine lateFine = lateFineOpt.get();
+                    long daysLate = java.time.Duration.between(borrow.getDueDate(), currentDate).toDays();
+                    BigDecimal fineAmount = LATE_FINE_RATE.multiply(BigDecimal.valueOf(Math.max(daysLate, 0)));
+                    lateFine.setAmount(fineAmount);
+                    borrowFineRepository.save(lateFine);
+                    System.out.println("Updated late fine for borrow " + borrow.getId() + " to " + fineAmount);
+                } else {
+                    // Create new fine
+                    long daysLate = java.time.Duration.between(borrow.getDueDate(), currentDate).toDays();
+                    BigDecimal fineAmount = LATE_FINE_RATE.multiply(BigDecimal.valueOf(Math.max(daysLate, 0)));
+                    BorrowFine lateFine = new BorrowFine(borrow.getId(), borrow.getUserId(), fineAmount, BorrowFine.FineReason.LATE);
+                    borrowFineRepository.save(lateFine);
+                    System.out.println("Created late fine for borrow " + borrow.getId() + " with amount " + fineAmount);
+                }
             }
         }
 
