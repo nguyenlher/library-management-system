@@ -46,11 +46,14 @@ const PaymentBorrowSuccess = () => {
         const payment = paymentResponse.data;
 
         // Create borrow record
+        const storedDueDate = localStorage.getItem(`dueDate_${paymentId}`);
+        const dueDate = storedDueDate ? new Date(storedDueDate).toISOString() : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        
         const borrowData = {
           userId: payment.userId,
           bookId: payment.referenceId,
           borrowDate: new Date().toISOString(),
-          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+          dueDate: dueDate
         };
 
         console.log('Creating borrow with data:', borrowData);
@@ -72,6 +75,8 @@ const PaymentBorrowSuccess = () => {
       })
       .then(() => {
         console.log('Book availableCopies updated successfully');
+        // Clean up stored due date
+        localStorage.removeItem(`dueDate_${paymentId}`);
         setLoading(false);
       })
       .catch(err => {

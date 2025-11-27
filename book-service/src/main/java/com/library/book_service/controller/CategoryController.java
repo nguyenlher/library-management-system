@@ -12,7 +12,7 @@ import com.library.book_service.service.CategoryService;
 
 @RestController
 @RequestMapping("/books")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class CategoryController {
 
     private final CategoryService categoryService;

@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+build/
+bin/
+out/
+target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# Test
+**/test/
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node modules (for frontend)
+node_modules/
+
+# Frontend build artifacts
+frontend-user/build/
+frontend-admin/build/

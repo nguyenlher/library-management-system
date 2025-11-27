@@ -66,7 +66,14 @@ Desktop.ini
 ### Application specific ###
 application-local.properties
 application-local.yml
-*.env
+
+# Environment variables - IMPORTANT: Never commit .env files with secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
 
 ### Temporary files ###
 *.tmp

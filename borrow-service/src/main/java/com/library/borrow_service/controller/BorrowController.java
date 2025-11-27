@@ -1,7 +1,9 @@
 package com.library.borrow_service.controller;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,12 +62,21 @@ public class BorrowController {
 
     private BigDecimal calculateFine(Borrow borrow) {
         // Calculate fine based on return date vs due date
-        if (borrow.getReturnDate() != null && borrow.getReturnDate().isAfter(borrow.getDueDate())) {
-            // Calculate number of days overdue
-            long daysOverdue = java.time.Duration.between(borrow.getDueDate(), borrow.getReturnDate()).toDays();
-            if (daysOverdue > 0) {
-                // 10,000 VND per day overdue
-                return BigDecimal.valueOf(daysOverdue * 10000);
+        if (borrow.getStatus() == Borrow.BorrowStatus.LATE_RETURNED) {
+            if (borrow.getReturnDate() != null && borrow.getReturnDate().isAfter(borrow.getDueDate())) {
+                // Calculate number of days overdue
+                long daysOverdue = java.time.Duration.between(borrow.getDueDate(), borrow.getReturnDate()).toDays();
+                if (daysOverdue > 0) {
+                    // 10,000 VND per day overdue
+                    return BigDecimal.valueOf(daysOverdue * 10000);
+                }
+            } else if (borrow.getReturnDate() == null) {
+                // Still borrowed but overdue, calculate based on current date
+                long daysOverdue = java.time.Duration.between(borrow.getDueDate(), LocalDateTime.now()).toDays();
+                if (daysOverdue > 0) {
+                    // 10,000 VND per day overdue
+                    return BigDecimal.valueOf(daysOverdue * 10000);
+                }
             }
         }
 
@@ -97,6 +108,30 @@ public class BorrowController {
     public ResponseEntity<Borrow> createBorrow(@RequestBody CreateBorrowRequest request) {
         System.out.println("BorrowController: Received create borrow request for userId=" + request.getUserId() + ", bookId=" + request.getBookId());
         
+        // Validate that user exists
+        try {
+            String userUrl = "http://localhost:8081/users/" + request.getUserId() + "/profile";
+            ResponseEntity<Object> userResponse = restTemplate.getForEntity(userUrl, Object.class);
+            if (!userResponse.getStatusCode().is2xxSuccessful()) {
+                throw new IllegalArgumentException("User not found");
+            }
+        } catch (Exception e) {
+            System.err.println("BorrowController: Failed to validate user: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid userId");
+        }
+
+        // Validate that book exists
+        try {
+            String bookUrl = "http://localhost:8082/books/" + request.getBookId();
+            ResponseEntity<Object> bookResponse = restTemplate.getForEntity(bookUrl, Object.class);
+            if (!bookResponse.getStatusCode().is2xxSuccessful()) {
+                throw new IllegalArgumentException("Book not found");
+            }
+        } catch (Exception e) {
+            System.err.println("BorrowController: Failed to validate book: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid bookId");
+        }
+
         // Check if user already has an active borrow for this book
         List<Borrow> existingBorrows = borrowRepository.findByUserIdAndBookIdAndStatus(
             request.getUserId(), 
@@ -105,17 +140,53 @@ public class BorrowController {
         );
         
         if (!existingBorrows.isEmpty()) {
-            System.out.println("BorrowController: Found existing borrow record, returning existing: " + existingBorrows.get(0).getId());
-            // Return the existing borrow record instead of creating a new one
-            return ResponseEntity.ok(existingBorrows.get(0));
+            Borrow existingBorrow = existingBorrows.get(0);
+            System.out.println("BorrowController: Found existing borrow record, updating due date: " + existingBorrow.getId());
+            // Update the due date if provided
+            if (request.getDueDate() != null) {
+                try {
+                    Instant instant = Instant.parse(request.getDueDate());
+                    existingBorrow.setDueDate(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+                } catch (java.time.format.DateTimeParseException ex) {
+                    existingBorrow.setDueDate(java.time.LocalDate.parse(request.getDueDate()).atStartOfDay());
+                }
+            }
+            Borrow updatedBorrow = borrowRepository.save(existingBorrow);
+            return ResponseEntity.ok(updatedBorrow);
         }
 
         System.out.println("BorrowController: Creating new borrow record");
         Borrow borrow = new Borrow();
         borrow.setUserId(request.getUserId());
         borrow.setBookId(request.getBookId());
-        borrow.setBorrowDate(request.getBorrowDate() != null ? java.time.LocalDate.parse(request.getBorrowDate()).atStartOfDay() : LocalDateTime.now());
-        borrow.setDueDate(request.getDueDate() != null ? java.time.LocalDate.parse(request.getDueDate()).atStartOfDay() : LocalDateTime.now().plusDays(14));
+        // Parse borrowDate and dueDate. Accept either date-only (yyyy-MM-dd) or full ISO datetime.
+        try {
+            if (request.getBorrowDate() != null) {
+                try {
+                    Instant instant = Instant.parse(request.getBorrowDate());
+                    borrow.setBorrowDate(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+                } catch (java.time.format.DateTimeParseException ex) {
+                    borrow.setBorrowDate(java.time.LocalDate.parse(request.getBorrowDate()).atStartOfDay());
+                }
+            } else {
+                borrow.setBorrowDate(LocalDateTime.now());
+            }
+
+            if (request.getDueDate() != null) {
+                try {
+                    Instant instant = Instant.parse(request.getDueDate());
+                    borrow.setDueDate(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+                } catch (java.time.format.DateTimeParseException ex) {
+                    borrow.setDueDate(java.time.LocalDate.parse(request.getDueDate()).atStartOfDay());
+                }
+            } else {
+                throw new IllegalArgumentException("Due date is required");
+            }
+        } catch (Exception e) {
+            System.err.println("BorrowController: Failed to parse date fields: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid date format for borrowDate or dueDate");
+        }
+
         borrow.setStatus(Borrow.BorrowStatus.BORROWED);
 
         Borrow savedBorrow = borrowRepository.save(borrow);

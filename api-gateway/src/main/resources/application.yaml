@@ -1,27 +1,33 @@
 server:
-  port: 8080
+  port: ${API_GATEWAY_PORT:8080}
 
 spring:
+  application:
+    name: api-gateway
   cloud:
     gateway:
       routes:
         - id: user-service
-          uri: http://localhost:8081
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/users/**
         - id: book-service
-          uri: http://localhost:8082
+          uri: ${BOOK_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/books/**
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/auth/**
         - id: borrow-service
-          uri: http://localhost:8083
+          uri: ${BORROW_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/borrow/**
         - id: payment-service
-          uri: http://localhost:8084
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/payments/**
         - id: notification-service
-          uri: http://localhost:8085
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/notifications/**

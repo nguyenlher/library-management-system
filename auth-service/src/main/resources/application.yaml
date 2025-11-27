@@ -1,13 +1,13 @@
 server:
-  port: 8083
+  port: ${AUTH_SERVICE_PORT:8083}
 
 spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db?createDatabaseIfNotExist=true
-    username: root
-    password:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/auth_db?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -15,8 +15,8 @@ spring:
     show-sql: true
 
 jwt:
-  secret: mySecretKey1234567890123456789012345678901234567890
+  secret: ${JWT_SECRET:mySecretKey1234567890123456789012345678901234567890}
   access:
-    expiration: 900000  # 15 minutes
+    expiration: ${JWT_ACCESS_EXPIRATION:900000}
   refresh:
-    expiration: 604800000  # 7 days
+    expiration: ${JWT_REFRESH_EXPIRATION:604800000}

@@ -85,6 +85,9 @@ const CheckoutPage = () => {
           type: 'borrow'
         });
         
+        // Store due date for later use in payment success
+        localStorage.setItem(`dueDate_${response.data.paymentId}`, borrowForm.returnDate);
+        
         setPaymentUrl(response.data.paymentUrl);
       } catch (error) {
         setPaymentError('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
@@ -95,12 +98,39 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (!paymentMethod) {
       setPaymentError('Vui lòng chọn phương thức thanh toán');
       return;
     }
-    setCurrentStep(3);
+
+    if (paymentMethod === 'cash') {
+      // Create borrow record for cash payment
+      const userId = localStorage.getItem('userId') || 1;
+      const borrowData = {
+        userId: Number(userId),
+        bookId: Number(id),
+        borrowDate: borrowForm.borrowDate + 'T00:00:00.000Z',
+        dueDate: borrowForm.returnDate + 'T23:59:59.999Z'
+      };
+
+      try {
+        await axios.post('http://localhost:8086/borrows', borrowData);
+        // Decrease available copies
+        const bookResponse = await axios.get(`http://localhost:8082/books/${id}`);
+        const book = bookResponse.data;
+        const updatedBook = {
+          ...book,
+          availableCopies: book.availableCopies - 1
+        };
+        await axios.put(`http://localhost:8082/books/${id}`, updatedBook);
+        setCurrentStep(3);
+      } catch (error) {
+        setPaymentError('Không thể tạo phiếu mượn. Vui lòng thử lại.');
+      }
+    } else {
+      setCurrentStep(3);
+    }
   };
 
   const handleGoBack = () => {

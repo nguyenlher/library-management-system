@@ -132,6 +132,19 @@ const FineHistoryPage = () => {
     }
   };
 
+  const getReasonText = (reason) => {
+    switch (reason) {
+      case 'DAMAGE':
+        return 'Hư hại';
+      case 'LATE':
+        return 'Trễ hạn';
+      case 'LOST':
+        return 'Thất lạc';
+      default:
+        return reason;
+    }
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case 'UNPAID':
@@ -264,7 +277,7 @@ const FineHistoryPage = () => {
                     
                     <div className="info-item">
                       <span className="label">Lý do:</span>
-                      <span className="value">{fine.reason}</span>
+                      <span className="value">{getReasonText(fine.reason)}</span>
                     </div>
                     
                     <div className="info-item">

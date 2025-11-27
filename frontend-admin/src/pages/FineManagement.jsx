@@ -13,6 +13,7 @@ const FineManagement = () => {
   const [formData, setFormData] = useState({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
   const [users, setUsers] = useState([]);
   const [userBorrows, setUserBorrows] = useState([]);
+  const [selectedBorrow, setSelectedBorrow] = useState(null);
 
   useEffect(() => {
     fetchFines();
@@ -140,7 +141,14 @@ const FineManagement = () => {
 
   const handleUserChange = (userId) => {
     setFormData({ ...formData, userId, borrowId: '' });
+    setSelectedBorrow(null);
     fetchUserBorrows(userId);
+  };
+
+  const handleBorrowChange = (borrowId) => {
+    setFormData({ ...formData, borrowId });
+    const borrow = userBorrows.find(b => b.id.toString() === borrowId);
+    setSelectedBorrow(borrow || null);
   };
 
   const handleAddFine = async () => {
@@ -159,6 +167,7 @@ const FineManagement = () => {
         setShowAddModal(false);
         setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
         setUserBorrows([]);
+        setSelectedBorrow(null);
         fetchFines();
       }
     } catch (error) {
@@ -174,7 +183,10 @@ const FineManagement = () => {
       amount: fine.amount?.toString() || '',
       reason: fine.reason || 'LATE'
     });
-    fetchUserBorrows(fine.userId);
+    fetchUserBorrows(fine.userId).then(() => {
+      const borrow = userBorrows.find(b => b.id.toString() === fine.borrowId?.toString());
+      setSelectedBorrow(borrow || null);
+    });
     setShowAddModal(true);
   };
 
@@ -193,6 +205,7 @@ const FineManagement = () => {
         setEditingFine(null);
         setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' });
         setUserBorrows([]);
+        setSelectedBorrow(null);
         fetchFines();
       }
     } catch (error) {
@@ -222,7 +235,7 @@ const FineManagement = () => {
     <div className="dashboard-content">
       <div className="page-header">
         <h2 className="page-title">Quản lý phí phạt</h2>
-        <button className="btn-primary" onClick={() => { setEditingFine(null); setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' }); setUserBorrows([]); setShowAddModal(true); }}>
+        <button className="btn-primary" onClick={() => { setEditingFine(null); setFormData({ userId: '', borrowId: '', amount: '', reason: 'LATE' }); setUserBorrows([]); setSelectedBorrow(null); setShowAddModal(true); }}>
           <FaPlus /> Thêm phạt
         </button>
       </div>
@@ -349,7 +362,7 @@ const FineManagement = () => {
                 <label>Mã mượn:</label>
                 <select 
                   value={formData.borrowId} 
-                  onChange={(e) => setFormData({ ...formData, borrowId: e.target.value })}
+                  onChange={(e) => handleBorrowChange(e.target.value)}
                   disabled={editingFine !== null || !formData.userId}
                   required
                 >
@@ -368,7 +381,9 @@ const FineManagement = () => {
               <div className="form-group">
                 <label>Lý do:</label>
                 <select value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })}>
-                  <option value="LATE">Trễ hạn</option>
+                  {(!selectedBorrow || (selectedBorrow.status !== 'RETURNED' && selectedBorrow.status !== 'LATE_RETURNED')) && (
+                    <option value="LATE">Trễ hạn</option>
+                  )}
                   <option value="LOST">Mất sách</option>
                   <option value="DAMAGE">Hư hỏng</option>
                 </select>
@@ -378,7 +393,7 @@ const FineManagement = () => {
                 <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required />
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => { setShowAddModal(false); setUserBorrows([]); }}>Hủy</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowAddModal(false); setUserBorrows([]); setSelectedBorrow(null); }}>Hủy</button>
                 <button type="submit" className="btn-primary">{editingFine ? 'Cập nhật' : 'Thêm'}</button>
               </div>
             </form>

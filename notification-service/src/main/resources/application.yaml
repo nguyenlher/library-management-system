@@ -1,21 +1,23 @@
 server:
-  port: 8085
+  port: ${NOTIFICATION_SERVICE_PORT:8085}
 
 spring:
+  application:
+    name: notification-service
   datasource:
-    url: jdbc:mysql://localhost:3306/notification_db?createDatabaseIfNotExist=true
-    username: root
-    password:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/notification_db?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: nguyenlh2004@gmail.com
-    password: fsos zhhk zbgr yyfu
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
